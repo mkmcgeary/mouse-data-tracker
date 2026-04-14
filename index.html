@@ -19,7 +19,7 @@
     }
     
     .container {
-      max-width: 700px;
+      max-width: 800px;
       margin: 0 auto;
       background: white;
       border-radius: 12px;
@@ -42,6 +42,52 @@
     .header p {
       font-size: 14px;
       opacity: 0.9;
+    }
+    
+    .nav-tabs {
+      display: flex;
+      background: #f5f5f5;
+      border-bottom: 2px solid #e0e0e0;
+      overflow-x: auto;
+    }
+    
+    .nav-tab {
+      flex: 1;
+      padding: 15px 20px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+      min-width: 120px;
+    }
+    
+    .nav-tab:hover {
+      background: #efefef;
+    }
+    
+    .nav-tab.active {
+      color: #4CAF50;
+      border-bottom-color: #4CAF50;
+      background: white;
+    }
+    
+    .page {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     
     .form-section {
@@ -67,6 +113,7 @@
     input[type="date"],
     input[type="number"],
     input[type="text"],
+    input[type="email"],
     select,
     textarea {
       width: 100%;
@@ -147,10 +194,23 @@
       background: #2196F3;
       color: white;
       font-size: 13px;
+      grid-column: auto;
     }
     
     .btn-secondary:hover {
       background: #0b7dda;
+    }
+    
+    .btn-add-mouse {
+      background: #FF9800;
+      color: white;
+      padding: 10px 15px;
+      font-size: 13px;
+      grid-column: auto;
+    }
+    
+    .btn-add-mouse:hover {
+      background: #e68900;
     }
     
     button:disabled {
@@ -202,24 +262,6 @@
       100% { transform: rotate(360deg); }
     }
     
-    .export-section {
-      background: #f9f9f9;
-      padding: 25px;
-      border-top: 2px solid #e0e0e0;
-    }
-    
-    .export-section h3 {
-      color: #333;
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-    
-    .export-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    
     .info-box {
       background: #e3f2fd;
       border-left: 4px solid #2196F3;
@@ -236,6 +278,41 @@
       gap: 15px;
     }
     
+    .mouse-id-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+    
+    .mouse-id-input-group input {
+      flex: 1;
+    }
+    
+    .mouse-ids-list {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      min-height: 60px;
+    }
+    
+    .mouse-id-tag {
+      display: inline-block;
+      background: #4CAF50;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      margin: 5px 5px 5px 0;
+      font-size: 13px;
+    }
+    
+    .mouse-id-tag .remove {
+      margin-left: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
     @media (max-width: 600px) {
       .field-row {
         grid-template-columns: 1fr;
@@ -248,6 +325,16 @@
       .form-section {
         padding: 20px;
       }
+      
+      .nav-tabs {
+        overflow-x: auto;
+      }
+      
+      .nav-tab {
+        min-width: 100px;
+        font-size: 12px;
+        padding: 10px 15px;
+      }
     }
   </style>
 </head>
@@ -255,144 +342,294 @@
   <div class="container">
     <div class="header">
       <h1>🐭 Mouse Data Tracker</h1>
-      <p>Mon/Wed/Fri Data Collection</p>
+      <p>Multi-purpose data collection system</p>
     </div>
     
-    <div class="form-section">
-      <div class="info-box">
-        ℹ️ Data updates Monday, Wednesday, and Friday only. Next collection: <span id="nextCollection"></span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('tempWeights', event)">📊 Temps & Weights</button>
+      <button class="nav-tab" onclick="showPage('tumorVolume', event)">🔴 Tumor Volume</button>
+      <button class="nav-tab" onclick="showPage('cohortSetup', event)">⚙️ Setup Cohort</button>
+    </div>
+    
+    <!-- PAGE 1: Temperature & Weight Entry -->
+    <div id="tempWeights" class="page active">
+      <div class="form-section">
+        <div class="info-box">
+          ℹ️ Collection schedule: Monday, Wednesday, Friday
+        </div>
+        
+        <form id="tempWeightForm">
+          <div class="form-group">
+            <label for="tw_date">Date <span class="required">*</span></label>
+            <input type="date" id="tw_date" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="tw_cohort">Cohort <span class="required">*</span></label>
+            <select id="tw_cohort" required onchange="updateMouseIDs('tw')">
+              <option value="">-- Select Cohort --</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="tw_mouseID">Mouse ID <span class="required">*</span></label>
+            <select id="tw_mouseID" required>
+              <option value="">-- Select Mouse --</option>
+            </select>
+          </div>
+          
+          <div class="field-row">
+            <div class="form-group">
+              <label for="tw_preTemp">Pre-Treatment Temp (°C) <span class="required">*</span></label>
+              <input type="number" id="tw_preTemp" step="0.1" min="30" max="40" placeholder="37.2" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="tw_postTemp">Post-Treatment Temp (°C) <span class="required">*</span></label>
+              <input type="number" id="tw_postTemp" step="0.1" min="30" max="40" placeholder="36.8" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="tw_weight">Weight (g) <span class="required">*</span></label>
+            <input type="number" id="tw_weight" step="0.1" min="10" max="50" placeholder="24.5" required>
+          </div>
+          
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="tw_died">
+              <label for="tw_died">☠️ Mouse died today?</label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="tw_notes">Notes (Optional)</label>
+            <textarea id="tw_notes" placeholder="Any observations..."></textarea>
+          </div>
+          
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Submit Temps & Weight</button>
+            <button type="reset" class="btn-secondary">Clear Form</button>
+          </div>
+          
+          <div class="loading" id="tw_loading">
+            <div class="spinner"></div>
+            <p>Uploading...</p>
+          </div>
+          
+          <div class="message" id="tw_message"></div>
+        </form>
       </div>
-      
-      <form id="dataForm">
-        <div class="form-group">
-          <label for="date">Date <span class="required">*</span></label>
-          <input type="date" id="date" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="cohort">Cohort <span class="required">*</span></label>
-          <select id="cohort" required>
-            <option value="">-- Select Cohort --</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="mouseID">Mouse ID <span class="required">*</span></label>
-          <input type="text" id="mouseID" placeholder="e.g., A001, B015" required>
-        </div>
-        
-        <div class="field-row">
-          <div class="form-group">
-            <label for="preTemp">Pre-Treatment Temp (°C) <span class="required">*</span></label>
-            <input type="number" id="preTemp" step="0.1" min="30" max="40" placeholder="37.2" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="postTemp">Post-Treatment Temp (°C) <span class="required">*</span></label>
-            <input type="number" id="postTemp" step="0.1" min="30" max="40" placeholder="36.8" required>
-          </div>
-        </div>
-        
-        <div class="field-row">
-          <div class="form-group">
-            <label for="weight">Weight (g) <span class="required">*</span></label>
-            <input type="number" id="weight" step="0.1" min="10" max="50" placeholder="24.5" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="tumorVolume">Tumor Volume (mm³) <span class="required">*</span></label>
-            <input type="number" id="tumorVolume" step="1" min="0" placeholder="150" required>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <div class="checkbox-group">
-            <input type="checkbox" id="died">
-            <label for="died">☠️ Mouse died today?</label>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="notes">Notes (Optional)</label>
-          <textarea id="notes" placeholder="Any observations..."></textarea>
-        </div>
-        
-        <div class="button-group">
-          <button type="submit" class="btn-primary">Submit Data Entry</button>
-          <button type="reset" class="btn-secondary">Clear Form</button>
-        </div>
-        
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Uploading...</p>
-        </div>
-        
-        <div class="message" id="message"></div>
-      </form>
     </div>
     
-    <div class="export-section">
-      <h3>📊 Export Data for Analysis</h3>
-      <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Download data for plotting in Excel, R, Python, etc.</p>
-      <div class="export-grid">
-        <button class="btn-secondary" onclick="downloadSheet('EXPORT_TEMP')">📈 Temperature</button>
-        <button class="btn-secondary" onclick="downloadSheet('EXPORT_WEIGHT')">⚖️ Weight</button>
-        <button class="btn-secondary" onclick="downloadSheet('EXPORT_TUMOR')">🔴 Tumor Volume</button>
-        <button class="btn-secondary" onclick="downloadSheet('EXPORT_SUMMARY')">📋 Summary</button>
+    <!-- PAGE 2: Tumor Volume Entry -->
+    <div id="tumorVolume" class="page">
+      <div class="form-section">
+        <div class="info-box">
+          ℹ️ Log tumor volumes separately from temp/weight data
+        </div>
+        
+        <form id="tumorForm">
+          <div class="form-group">
+            <label for="tv_date">Date <span class="required">*</span></label>
+            <input type="date" id="tv_date" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="tv_cohort">Cohort <span class="required">*</span></label>
+            <select id="tv_cohort" required onchange="updateMouseIDs('tv')">
+              <option value="">-- Select Cohort --</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="tv_mouseID">Mouse ID <span class="required">*</span></label>
+            <select id="tv_mouseID" required>
+              <option value="">-- Select Mouse --</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="tv_tumorVolume">Tumor Volume (mm³) <span class="required">*</span></label>
+            <input type="number" id="tv_tumorVolume" step="1" min="0" placeholder="150" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="tv_notes">Notes (Optional)</label>
+            <textarea id="tv_notes" placeholder="e.g., measurement method, location, etc."></textarea>
+          </div>
+          
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Submit Tumor Volume</button>
+            <button type="reset" class="btn-secondary">Clear Form</button>
+          </div>
+          
+          <div class="loading" id="tv_loading">
+            <div class="spinner"></div>
+            <p>Uploading...</p>
+          </div>
+          
+          <div class="message" id="tv_message"></div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- PAGE 3: Cohort Setup -->
+    <div id="cohortSetup" class="page">
+      <div class="form-section">
+        <div class="info-box">
+          ℹ️ Set up a new cohort and add all mouse IDs. You can add more mice later by setting up again.
+        </div>
+        
+        <form id="cohortSetupForm">
+          <div class="form-group">
+            <label for="cs_cohortName">Cohort Name <span class="required">*</span></label>
+            <input type="text" id="cs_cohortName" placeholder="e.g., Treatment_A, Control" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="cs_treatment">Treatment Description</label>
+            <input type="text" id="cs_treatment" placeholder="e.g., Drug_X (High Dose)">
+          </div>
+          
+          <div class="form-group">
+            <label for="cs_startDate">Start Date <span class="required">*</span></label>
+            <input type="date" id="cs_startDate" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="cs_targetN">Target N (number of mice) <span class="required">*</span></label>
+            <input type="number" id="cs_targetN" min="1" placeholder="5" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Mouse IDs <span class="required">*</span></label>
+            <div class="mouse-id-input-group">
+              <input type="text" id="cs_mouseIDInput" placeholder="e.g., A001 or paste: A001,A002,A003" maxlength="200">
+              <button type="button" class="btn-add-mouse" onclick="addMouseIDToList()">Add</button>
+            </div>
+            <small style="color: #666; display: block; margin-top: 8px;">Tip: Enter single ID and click Add, OR paste multiple IDs separated by commas</small>
+          </div>
+          
+          <div class="mouse-ids-list" id="cs_mouseIDsList">
+            <strong>Mouse IDs to add:</strong>
+            <div id="cs_mouseIDTags" style="margin-top: 10px;">
+              <em style="color: #999;">No mice added yet</em>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="cs_notes">Notes</label>
+            <textarea id="cs_notes" placeholder="Any additional information about this cohort..."></textarea>
+          </div>
+          
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Create Cohort & Add Mice</button>
+            <button type="reset" class="btn-secondary">Clear Form</button>
+          </div>
+          
+          <div class="loading" id="cs_loading">
+            <div class="spinner"></div>
+            <p>Setting up cohort...</p>
+          </div>
+          
+          <div class="message" id="cs_message"></div>
+        </form>
       </div>
     </div>
   </div>
 
   <script>
     // ==================== CONFIGURATION ====================
-    // REPLACE THESE WITH YOUR OWN VALUES
-    const SHEET_ID = "1dHvSjO18Bg2LzkL6UwEDNWaIZhh5qOfJtZkVvpI5aII";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw15O7BYtVpyl3pHoUlVNgiKfsPfWVUiMCp9mUdqJdvI04U8h2Lg2OCQx465_PNpGdkIw/exec";
+    const SHEET_ID = "YOUR_SHEET_ID_HERE";
+    const APPS_SCRIPT_URL = "YOUR_DEPLOYMENT_URL_HERE";
+    
+    // Store mouse IDs being added to new cohort
+    let mouseIDsToAdd = [];
+    
+    // Store cohort->mice mapping
+    let cohortMiceMap = {
+      'Treatment_A': ['A001', 'A002', 'A003', 'A004', 'A005'],
+      'Treatment_B': ['B001', 'B002', 'B003', 'B004', 'B005'],
+      'Control': ['C001', 'C002', 'C003', 'C004', 'C005']
+    };
     
     // ==================== INITIALIZATION ====================
     
     document.addEventListener('DOMContentLoaded', () => {
-      setTodayDate();
-      loadCohorts();
-      document.getElementById('nextCollection').textContent = calculateNextCollection();
-      document.getElementById('dataForm').addEventListener('submit', handleSubmit);
+      setTodayDates();
+      loadCohortsForForms();
+      
+      // Form submission handlers
+      document.getElementById('tempWeightForm').addEventListener('submit', handleTempWeightSubmit);
+      document.getElementById('tumorForm').addEventListener('submit', handleTumorSubmit);
+      document.getElementById('cohortSetupForm').addEventListener('submit', handleCohortSetupSubmit);
     });
+    
+    // ==================== PAGE NAVIGATION ====================
+    
+    function showPage(pageName, event) {
+      event.preventDefault();
+      
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      
+      // Deactivate all tabs
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected page
+      document.getElementById(pageName).classList.add('active');
+      
+      // Activate clicked tab
+      event.target.classList.add('active');
+    }
     
     // ==================== UTILITY FUNCTIONS ====================
     
-    function setTodayDate() {
+    function setTodayDates() {
       const today = new Date().toISOString().split('T')[0];
-      document.getElementById('date').value = today;
+      document.getElementById('tw_date').value = today;
+      document.getElementById('tv_date').value = today;
+      document.getElementById('cs_startDate').value = today;
     }
     
-    function calculateNextCollection() {
-      const collectionDays = [1, 3, 5]; // Monday, Wednesday, Friday
+    function loadCohortsForForms() {
+      const cohorts = Object.keys(cohortMiceMap);
       
-      let tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      while (!collectionDays.includes(tomorrow.getDay())) {
-        tomorrow.setDate(tomorrow.getDate() + 1);
-      }
-      
-      return tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-    }
-    
-    function loadCohorts() {
-      // These should match your CONFIG sheet
-      const cohorts = ["Treatment_A", "Treatment_B", "Control"];
-      const select = document.getElementById('cohort');
-      
-      cohorts.forEach(cohort => {
-        const option = document.createElement('option');
-        option.value = cohort;
-        option.textContent = cohort;
-        select.appendChild(option);
+      [document.getElementById('tw_cohort'), 
+       document.getElementById('tv_cohort')].forEach(select => {
+        cohorts.forEach(cohort => {
+          const option = document.createElement('option');
+          option.value = cohort;
+          option.textContent = cohort;
+          select.appendChild(option);
+        });
       });
     }
     
-    function showMessage(text, type) {
-      const messageDiv = document.getElementById('message');
+    function updateMouseIDs(prefix) {
+      const cohortSelect = document.getElementById(`${prefix}_cohort`);
+      const mouseSelect = document.getElementById(`${prefix}_mouseID`);
+      
+      mouseSelect.innerHTML = '<option value="">-- Select Mouse --</option>';
+      
+      const cohort = cohortSelect.value;
+      const mice = cohortMiceMap[cohort] || [];
+      
+      mice.forEach(mouseID => {
+        const option = document.createElement('option');
+        option.value = mouseID;
+        option.textContent = mouseID;
+        mouseSelect.appendChild(option);
+      });
+    }
+    
+    function showMessage(elementId, text, type) {
+      const messageDiv = document.getElementById(elementId);
       messageDiv.textContent = text;
       messageDiv.className = `message ${type}`;
       
@@ -404,39 +641,82 @@
       }
     }
     
-    // ==================== FORM SUBMISSION ====================
+    function validateConfiguration() {
+      if (APPS_SCRIPT_URL === "YOUR_DEPLOYMENT_URL_HERE") {
+        showMessage('tw_message', '❌ ERROR: Update APPS_SCRIPT_URL in index.html', 'error');
+        return false;
+      }
+      return true;
+    }
     
-    async function handleSubmit(e) {
+    // ==================== COHORT SETUP FUNCTIONS ====================
+    
+    function addMouseIDToList() {
+      const input = document.getElementById('cs_mouseIDInput');
+      const value = input.value.trim();
+      
+      if (!value) {
+        alert('Please enter at least one mouse ID');
+        return;
+      }
+      
+      // Handle comma-separated values
+      const ids = value.split(',').map(id => id.trim()).filter(id => id.length > 0);
+      
+      ids.forEach(id => {
+        if (!mouseIDsToAdd.includes(id)) {
+          mouseIDsToAdd.push(id);
+        }
+      });
+      
+      input.value = '';
+      renderMouseIDTags();
+    }
+    
+    function renderMouseIDTags() {
+      const tagsDiv = document.getElementById('cs_mouseIDTags');
+      
+      if (mouseIDsToAdd.length === 0) {
+        tagsDiv.innerHTML = '<em style="color: #999;">No mice added yet</em>';
+        return;
+      }
+      
+      tagsDiv.innerHTML = mouseIDsToAdd.map(id => 
+        `<span class="mouse-id-tag">${id} <span class="remove" onclick="removeMouseID('${id}')">×</span></span>`
+      ).join('');
+    }
+    
+    function removeMouseID(id) {
+      mouseIDsToAdd = mouseIDsToAdd.filter(m => m !== id);
+      renderMouseIDTags();
+    }
+    
+    // ==================== FORM SUBMISSION HANDLERS ====================
+    
+    async function handleTempWeightSubmit(e) {
       e.preventDefault();
       
-      // Check if configuration is complete
-      if (APPS_SCRIPT_URL === "YOUR_DEPLOYMENT_URL_HERE") {
-        showMessage('❌ ERROR: Please update APPS_SCRIPT_URL in index.html', 'error');
-        return;
-      }
+      if (!validateConfiguration()) return;
       
-      // Collect form data
       const formData = {
-        date: document.getElementById('date').value,
-        cohort: document.getElementById('cohort').value,
-        mouseID: document.getElementById('mouseID').value,
-        preTemp: parseFloat(document.getElementById('preTemp').value),
-        postTemp: parseFloat(document.getElementById('postTemp').value),
-        weight: parseFloat(document.getElementById('weight').value),
-        tumorVolume: parseFloat(document.getElementById('tumorVolume').value),
-        died: document.getElementById('died').checked,
-        notes: document.getElementById('notes').value
+        type: 'addTemp',
+        date: document.getElementById('tw_date').value,
+        cohort: document.getElementById('tw_cohort').value,
+        mouseID: document.getElementById('tw_mouseID').value,
+        preTemp: parseFloat(document.getElementById('tw_preTemp').value),
+        postTemp: parseFloat(document.getElementById('tw_postTemp').value),
+        weight: parseFloat(document.getElementById('tw_weight').value),
+        died: document.getElementById('tw_died').checked,
+        notes: document.getElementById('tw_notes').value
       };
       
-      // Validate data
       if (!formData.cohort || !formData.mouseID) {
-        showMessage('❌ Please fill in all required fields', 'error');
+        showMessage('tw_message', '❌ Please select cohort and mouse', 'error');
         return;
       }
       
-      // Show loading state
-      document.getElementById('loading').style.display = 'block';
-      const submitBtn = document.querySelector('.btn-primary');
+      document.getElementById('tw_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#tempWeightForm .btn-primary');
       submitBtn.disabled = true;
       
       try {
@@ -446,43 +726,128 @@
           body: JSON.stringify(formData)
         });
         
-        // Note: CORS prevents us from reading the response, but the script still works
-        // Wait a moment to ensure server processing
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('tw_loading').style.display = 'none';
         submitBtn.disabled = false;
         
-        showMessage('✓ Data submitted successfully! Sheets updated.', 'success');
-        document.getElementById('dataForm').reset();
-        setTodayDate();
+        showMessage('tw_message', '✓ Temperature & weight data submitted!', 'success');
+        document.getElementById('tempWeightForm').reset();
+        setTodayDates();
         
       } catch(error) {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('tw_loading').style.display = 'none';
         submitBtn.disabled = false;
-        
-        console.error('Error:', error);
-        showMessage(`❌ Error: ${error.message}`, 'error');
+        showMessage('tw_message', `❌ Error: ${error.message}`, 'error');
       }
     }
     
-    // ==================== EXPORT FUNCTIONS ====================
-    
-    function downloadSheet(sheetName) {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+    async function handleTumorSubmit(e) {
+      e.preventDefault();
       
-      if (SHEET_ID === "YOUR_SHEET_ID_HERE") {
-        alert('❌ Please update SHEET_ID in index.html first!');
+      if (!validateConfiguration()) return;
+      
+      const formData = {
+        type: 'addTumor',
+        date: document.getElementById('tv_date').value,
+        cohort: document.getElementById('tv_cohort').value,
+        mouseID: document.getElementById('tv_mouseID').value,
+        tumorVolume: parseFloat(document.getElementById('tv_tumorVolume').value),
+        notes: document.getElementById('tv_notes').value
+      };
+      
+      if (!formData.cohort || !formData.mouseID) {
+        showMessage('tv_message', '❌ Please select cohort and mouse', 'error');
         return;
       }
       
-      // Create temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${sheetName}_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      document.getElementById('tv_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#tumorForm .btn-primary');
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(formData)
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        document.getElementById('tv_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        
+        showMessage('tv_message', '✓ Tumor volume data submitted!', 'success');
+        document.getElementById('tumorForm').reset();
+        setTodayDates();
+        
+      } catch(error) {
+        document.getElementById('tv_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('tv_message', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+    
+    async function handleCohortSetupSubmit(e) {
+      e.preventDefault();
+      
+      if (!validateConfiguration()) return;
+      
+      const cohortName = document.getElementById('cs_cohortName').value.trim();
+      
+      if (!cohortName) {
+        showMessage('cs_message', '❌ Please enter cohort name', 'error');
+        return;
+      }
+      
+      if (mouseIDsToAdd.length === 0) {
+        showMessage('cs_message', '❌ Please add at least one mouse ID', 'error');
+        return;
+      }
+      
+      const formData = {
+        type: 'addMice',
+        cohort: cohortName,
+        mouseIDs: mouseIDsToAdd,
+        treatment: document.getElementById('cs_treatment').value,
+        startDate: document.getElementById('cs_startDate').value,
+        targetN: parseInt(document.getElementById('cs_targetN').value),
+        notes: document.getElementById('cs_notes').value
+      };
+      
+      document.getElementById('cs_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#cohortSetupForm .btn-primary');
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(formData)
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        document.getElementById('cs_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        
+        // Update local map
+        cohortMiceMap[cohortName] = mouseIDsToAdd;
+        
+        // Reload cohort dropdowns
+        loadCohortsForForms();
+        
+        showMessage('cs_message', `✓ Cohort "${cohortName}" created with ${mouseIDsToAdd.length} mice!`, 'success');
+        document.getElementById('cohortSetupForm').reset();
+        mouseIDsToAdd = [];
+        renderMouseIDTags();
+        setTodayDates();
+        
+      } catch(error) {
+        document.getElementById('cs_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('cs_message', `❌ Error: ${error.message}`, 'error');
+      }
     }
   </script>
 </body>
