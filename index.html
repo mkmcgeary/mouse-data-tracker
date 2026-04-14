@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mouse Data Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; max-width: 900px; margin: 0 auto; padding: 20px; }
+    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; color: #333; margin-bottom: 30px; }
+    .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+    .nav button { padding: 10px 20px; background: #f0f0f0; border: none; cursor: pointer; font-size: 14px; }
+    .nav button.active { background: #4CAF50; color: white; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; }
+    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #45a049; }
+    .message { margin-top: 15px; padding: 10px; border-radius: 4px; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🐭 Mouse Data Tracker</h1>
+      <p>Fast data collection system</p>
+    </div>
+
+    <div class="nav">
+      <button class="active" onclick="switchTab('temps')">📊 Temps & Weights</button>
+      <button onclick="switchTab('tumor')">🔴 Tumor Volume</button>
+      <button onclick="switchTab('setup')">⚙️ Setup Cohort</button>
+    </div>
+
+    <div id="temps" class="page active">
+      <h2>Temperature & Weight Entry</h2>
+      <form id="tempForm">
+        <div class="form-group">
+          <label>Date:</label>
+          <input type="date" id="temp_date" required>
+        </div>
+        <div class="form-group">
+          <label>Mouse ID:</label>
+          <input type="text" id="temp_mouseID" placeholder="e.g., A001" required autofocus>
+        </div>
+        <div class="field-row">
+          <div class="form-group">
+            <label>Pre-Temp (°C):</label>
+            <input type="number" id="temp_preTemp" step="0.1" placeholder="37.2" required>
+          </div>
+          <div class="form-group">
+            <label>Post-Temp (°C):</label>
+            <input type="number" id="temp_postTemp" step="0.1" placeholder="36.8" required>
+          </div>
+          <div class="form-group">
+            <label>Weight (g):</label>
+            <input type="number" id="temp_weight" step="0.1" placeholder="24.5" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="temp_died">
+            Mouse died?
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Notes:</label>
+          <textarea id="temp_notes" rows="3"></textarea>
+        </div>
+        <button type="submit">Submit</button>
+        <div id="temp_message"></div>
+      </form>
+    </div>
+
+    <div id="tumor" class="page">
+      <h2>Tumor Volume Entry</h2>
+      <form id="tumorForm">
+        <div class="form-group">
+          <label>Date:</label>
+          <input type="date" id="tumor_date" required>
+        </div>
+        <div class="form-group">
+          <label>Mouse ID:</label>
+          <input type="text" id="tumor_mouseID" placeholder="e.g., A001" required>
+        </div>
+        <div class="form-group">
+          <label>Tumor Volume (mm³):</label>
+          <input type="number" id="tumor_volume" step="1" placeholder="150" required>
+        </div>
+        <div class="form-group">
+          <label>Notes:</label>
+          <textarea id="tumor_notes" rows="3"></textarea>
+        </div>
+        <button type="submit">Submit</button>
+        <div id="tumor_message"></div>
+      </form>
+    </div>
+
+    <div id="setup" class="page">
+      <h2>Setup New Cohort</h2>
+      <form id="setupForm">
+        <div class="form-group">
+          <label>Cohort Name:</label>
+          <input type="text" id="setup_name" placeholder="e.g., Treatment_A" required>
+        </div>
+        <div class="form-group">
+          <label>Treatment:</label>
+          <input type="text" id="setup_treatment" placeholder="e.g., Drug X">
+        </div>
+        <div class="form-group">
+          <label>Start Date:</label>
+          <input type="date" id="setup_date" required>
+        </div>
+        <div class="form-group">
+          <label>Target N:</label>
+          <input type="number" id="setup_n" placeholder="5" required>
+        </div>
+        <div class="form-group">
+          <label>Mouse IDs (comma-separated):</label>
+          <textarea id="setup_mice" placeholder="A001,A002,A003" rows="3"></textarea>
+        </div>
+        <button type="submit">Create Cohort</button>
+        <div id="setup_message"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = "1dHvSjO18Bg2LzkL6UwEDNWaIZhh5qOfJtZkVvpI5aII";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5SwMLyv3ikVgEBGKgYskSc8ZQAoCsO_IGaQguqotejY0u-d6mfRxcZLCp67AH-Vd-Qg/exec";
+
+    function switchTab(tab) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function setDates() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('temp_date').value = today;
+      document.getElementById('tumor_date').value = today;
+      document.getElementById('setup_date').value = today;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setDates();
+      document.getElementById('tempForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+          type: 'addTemp',
+          date: document.getElementById('temp_date').value,
+          mouseID: document.getElementById('temp_mouseID').value.toUpperCase(),
+          preTemp: parseFloat(document.getElementById('temp_preTemp').value),
+          postTemp: parseFloat(document.getElementById('temp_postTemp').value),
+          weight: parseFloat(document.getElementById('temp_weight').value),
+          died: document.getElementById('temp_died').checked,
+          notes: document.getElementById('temp_notes').value
+        };
+        try {
+          const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+          document.getElementById('temp_message').innerHTML = '<div class="message success">✓ Data submitted!</div>';
+          document.getElementById('tempForm').reset();
+          setDates();
+          document.getElementById('temp_mouseID').focus();
+          setTimeout(() => { document.getElementById('temp_message').innerHTML = ''; }, 3000);
+        } catch(e) {
+          document.getElementById('temp_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
+        }
+      });
+
+      document.getElementById('tumorForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+          type: 'addTumor',
+          date: document.getElementById('tumor_date').value,
+          mouseID: document.getElementById('tumor_mouseID').value.toUpperCase(),
+          tumorVolume: parseFloat(document.getElementById('tumor_volume').value),
+          notes: document.getElementById('tumor_notes').value
+        };
+        try {
+          const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+          document.getElementById('tumor_message').innerHTML = '<div class="message success">✓ Tumor volume submitted!</div>';
+          document.getElementById('tumorForm').reset();
+          setDates();
+          document.getElementById('tumor_mouseID').focus();
+          setTimeout(() => { document.getElementById('tumor_message').innerHTML = ''; }, 3000);
+        } catch(e) {
+          document.getElementById('tumor_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
+        }
+      });
+
+      document.getElementById('setupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const mice = document.getElementById('setup_mice').value.split(',').map(m => m.trim());
+        const data = {
+          type: 'addMice',
+          cohort: document.getElementById('setup_name').value,
+          mouseIDs: mice,
+          treatment: document.getElementById('setup_treatment').value,
+          startDate: document.getElementById('setup_date').value,
+          targetN: parseInt(document.getElementById('setup_n').value)
+        };
+        try {
+          const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+          document.getElementById('setup_message').innerHTML = '<div class="message success">✓ Cohort created!</div>';
+          document.getElementById('setupForm').reset();
+          setDates();
+          setTimeout(() => { document.getElementById('setup_message').innerHTML = ''; }, 3000);
+        } catch(e) {
+          document.getElementById('setup_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
