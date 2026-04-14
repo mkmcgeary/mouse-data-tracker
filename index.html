@@ -175,8 +175,6 @@
       setDates();
       document.getElementById('tempForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const bcs = document.getElementById('temp_bcs').value || '3';
-        const notes = document.getElementById('temp_notes').value ? `BCS: ${bcs}, ${document.getElementById('temp_notes').value}` : `BCS: ${bcs}`;
         const data = {
           type: 'addTemp',
           date: document.getElementById('temp_date').value,
@@ -184,8 +182,9 @@
           preTemp: parseFloat(document.getElementById('temp_preTemp').value),
           postTemp: parseFloat(document.getElementById('temp_postTemp').value),
           weight: parseFloat(document.getElementById('temp_weight').value),
+          bcs: parseFloat(document.getElementById('temp_bcs').value) || 3,
           died: document.getElementById('temp_died').checked,
-          notes: notes
+          notes: document.getElementById('temp_notes').value
         };
         try {
           const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
