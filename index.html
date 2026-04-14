@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐭 Mouse Data Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .form-section {
+      padding: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    .required {
+      color: #f44336;
+    }
+    
+    input[type="date"],
+    input[type="number"],
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    
+    input[type="date"]:focus,
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 6px;
+    }
+    
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+      cursor: pointer;
+    }
+    
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    
+    button {
+      padding: 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background: #4CAF50;
+      color: white;
+      grid-column: 1 / -1;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-secondary {
+      background: #2196F3;
+      color: white;
+      font-size: 13px;
+    }
+    
+    .btn-secondary:hover {
+      background: #0b7dda;
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .message.success {
+      background: #c8e6c9;
+      color: #2e7d32;
+      border: 1px solid #81c784;
+      display: block;
+    }
+    
+    .message.error {
+      background: #ffcdd2;
+      color: #c62828;
+      border: 1px solid #ef5350;
+      display: block;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4CAF50;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .export-section {
+      background: #f9f9f9;
+      padding: 25px;
+      border-top: 2px solid #e0e0e0;
+    }
+    
+    .export-section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    .export-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196F3;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #1565c0;
+    }
+    
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    @media (max-width: 600px) {
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .header h1 {
+        font-size: 22px;
+      }
+      
+      .form-section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🐭 Mouse Data Tracker</h1>
+      <p>Mon/Wed/Fri Data Collection</p>
+    </div>
+    
+    <div class="form-section">
+      <div class="info-box">
+        ℹ️ Data updates Monday, Wednesday, and Friday only. Next collection: <span id="nextCollection"></span>
+      </div>
+      
+      <form id="dataForm">
+        <div class="form-group">
+          <label for="date">Date <span class="required">*</span></label>
+          <input type="date" id="date" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="cohort">Cohort <span class="required">*</span></label>
+          <select id="cohort" required>
+            <option value="">-- Select Cohort --</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="mouseID">Mouse ID <span class="required">*</span></label>
+          <input type="text" id="mouseID" placeholder="e.g., A001, B015" required>
+        </div>
+        
+        <div class="field-row">
+          <div class="form-group">
+            <label for="preTemp">Pre-Treatment Temp (°C) <span class="required">*</span></label>
+            <input type="number" id="preTemp" step="0.1" min="30" max="40" placeholder="37.2" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="postTemp">Post-Treatment Temp (°C) <span class="required">*</span></label>
+            <input type="number" id="postTemp" step="0.1" min="30" max="40" placeholder="36.8" required>
+          </div>
+        </div>
+        
+        <div class="field-row">
+          <div class="form-group">
+            <label for="weight">Weight (g) <span class="required">*</span></label>
+            <input type="number" id="weight" step="0.1" min="10" max="50" placeholder="24.5" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="tumorVolume">Tumor Volume (mm³) <span class="required">*</span></label>
+            <input type="number" id="tumorVolume" step="1" min="0" placeholder="150" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="died">
+            <label for="died">☠️ Mouse died today?</label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="notes">Notes (Optional)</label>
+          <textarea id="notes" placeholder="Any observations..."></textarea>
+        </div>
+        
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Submit Data Entry</button>
+          <button type="reset" class="btn-secondary">Clear Form</button>
+        </div>
+        
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p>Uploading...</p>
+        </div>
+        
+        <div class="message" id="message"></div>
+      </form>
+    </div>
+    
+    <div class="export-section">
+      <h3>📊 Export Data for Analysis</h3>
+      <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Download data for plotting in Excel, R, Python, etc.</p>
+      <div class="export-grid">
+        <button class="btn-secondary" onclick="downloadSheet('EXPORT_TEMP')">📈 Temperature</button>
+        <button class="btn-secondary" onclick="downloadSheet('EXPORT_WEIGHT')">⚖️ Weight</button>
+        <button class="btn-secondary" onclick="downloadSheet('EXPORT_TUMOR')">🔴 Tumor Volume</button>
+        <button class="btn-secondary" onclick="downloadSheet('EXPORT_SUMMARY')">📋 Summary</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== CONFIGURATION ====================
+    // REPLACE THESE WITH YOUR OWN VALUES
+    const SHEET_ID = "YOUR_SHEET_ID_HERE";
+    const APPS_SCRIPT_URL = "YOUR_DEPLOYMENT_URL_HERE";
+    
+    // ==================== UTILITY FUNCTIONS ====================
+    
+    function setTodayDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').value = today;
+    }
+    
+    function calculateNextCollection() {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const collectionDays = [1, 3, 5]; // Monday, Wednesday, Friday
+      
+      let tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      while (!collectionDays.includes(tomorrow.getDay())) {
+        tomorrow.setDate(tomorrow.getDate() + 1);
+      }
+      
+      return tomorrow.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    function loadCohorts() {
+      const cohorts = ["Treatment_A", "Treatment_B", "Control"];
+      const select = document.getElementById('cohort');
+      
+      cohorts.forEach(cohort => {
+        const option = document.createElement('option');
+        option.value = cohort;
+        option.textContent = cohort;
+        select.appendChild(option);
+      });
+    }
+    
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.classList.remove('success');
+          messageDiv.textContent = '';
+        },
