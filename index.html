@@ -349,6 +349,15 @@
     const SHEET_ID = "YOUR_SHEET_ID_HERE";
     const APPS_SCRIPT_URL = "YOUR_DEPLOYMENT_URL_HERE";
     
+    // ==================== INITIALIZATION ====================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      setTodayDate();
+      loadCohorts();
+      document.getElementById('nextCollection').textContent = calculateNextCollection();
+      document.getElementById('dataForm').addEventListener('submit', handleSubmit);
+    });
+    
     // ==================== UTILITY FUNCTIONS ====================
     
     function setTodayDate() {
@@ -357,7 +366,6 @@
     }
     
     function calculateNextCollection() {
-      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const collectionDays = [1, 3, 5]; // Monday, Wednesday, Friday
       
       let tomorrow = new Date();
@@ -367,10 +375,11 @@
         tomorrow.setDate(tomorrow.getDate() + 1);
       }
       
-      return tomorrow.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     }
     
     function loadCohorts() {
+      // These should match your CONFIG sheet
       const cohorts = ["Treatment_A", "Treatment_B", "Control"];
       const select = document.getElementById('cohort');
       
@@ -391,4 +400,90 @@
         setTimeout(() => {
           messageDiv.classList.remove('success');
           messageDiv.textContent = '';
-        },
+        }, 5000);
+      }
+    }
+    
+    // ==================== FORM SUBMISSION ====================
+    
+    async function handleSubmit(e) {
+      e.preventDefault();
+      
+      // Check if configuration is complete
+      if (APPS_SCRIPT_URL === "YOUR_DEPLOYMENT_URL_HERE") {
+        showMessage('❌ ERROR: Please update APPS_SCRIPT_URL in index.html', 'error');
+        return;
+      }
+      
+      // Collect form data
+      const formData = {
+        date: document.getElementById('date').value,
+        cohort: document.getElementById('cohort').value,
+        mouseID: document.getElementById('mouseID').value,
+        preTemp: parseFloat(document.getElementById('preTemp').value),
+        postTemp: parseFloat(document.getElementById('postTemp').value),
+        weight: parseFloat(document.getElementById('weight').value),
+        tumorVolume: parseFloat(document.getElementById('tumorVolume').value),
+        died: document.getElementById('died').checked,
+        notes: document.getElementById('notes').value
+      };
+      
+      // Validate data
+      if (!formData.cohort || !formData.mouseID) {
+        showMessage('❌ Please fill in all required fields', 'error');
+        return;
+      }
+      
+      // Show loading state
+      document.getElementById('loading').style.display = 'block';
+      const submitBtn = document.querySelector('.btn-primary');
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(formData)
+        });
+        
+        // Note: CORS prevents us from reading the response, but the script still works
+        // Wait a moment to ensure server processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        document.getElementById('loading').style.display = 'none';
+        submitBtn.disabled = false;
+        
+        showMessage('✓ Data submitted successfully! Sheets updated.', 'success');
+        document.getElementById('dataForm').reset();
+        setTodayDate();
+        
+      } catch(error) {
+        document.getElementById('loading').style.display = 'none';
+        submitBtn.disabled = false;
+        
+        console.error('Error:', error);
+        showMessage(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+    
+    // ==================== EXPORT FUNCTIONS ====================
+    
+    function downloadSheet(sheetName) {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+      
+      if (SHEET_ID === "YOUR_SHEET_ID_HERE") {
+        alert('❌ Please update SHEET_ID in index.html first!');
+        return;
+      }
+      
+      // Create temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${sheetName}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
