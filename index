@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐭 Mouse Data Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px 20px; text-align: center; }
+    .header h1 { font-size: 28px; margin-bottom: 5px; }
+    .header p { font-size: 14px; opacity: 0.9; }
+    .nav-tabs { display: flex; background: #f5f5f5; border-bottom: 2px solid #e0e0e0; overflow-x: auto; }
+    .nav-tab { flex: 1; padding: 15px 20px; text-align: center; cursor: pointer; border: none; background: none; font-size: 14px; font-weight: 600; color: #666; transition: all 0.3s; border-bottom: 3px solid transparent; min-width: 120px; }
+    .nav-tab:hover { background: #efefef; }
+    .nav-tab.active { color: #4CAF50; border-bottom-color: #4CAF50; background: white; }
+    .page { display: none; animation: fadeIn 0.3s; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .form-section { padding: 30px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+    .required { color: #f44336; }
+    input[type="date"], input[type="number"], input[type="text"], select, textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit; transition: border-color 0.3s; }
+    input[type="date"]:focus, input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus { outline: none; border-color: #4CAF50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.2); }
+    textarea { resize: vertical; min-height: 80px; }
+    .checkbox-group { display: flex; align-items: center; padding: 15px; background: #f5f5f5; border-radius: 6px; }
+    input[type="checkbox"] { width: 20px; height: 20px; margin-right: 12px; cursor: pointer; }
+    .checkbox-group label { margin: 0; cursor: pointer; font-weight: 500; }
+    .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+    button { padding: 14px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .btn-primary { background: #4CAF50; color: white; grid-column: 1 / -1; }
+    .btn-primary:hover:not(:disabled) { background: #45a049; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3); }
+    .btn-secondary { background: #2196F3; color: white; font-size: 13px; grid-column: auto; }
+    .btn-secondary:hover { background: #0b7dda; }
+    .btn-add-mouse { background: #FF9800; color: white; padding: 10px 15px; font-size: 13px; grid-column: auto; }
+    .btn-add-mouse:hover { background: #e68900; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .message { margin-top: 20px; padding: 15px; border-radius: 6px; text-align: center; font-weight: 500; display: none; }
+    .message.success { background: #c8e6c9; color: #2e7d32; border: 1px solid #81c784; display: block; }
+    .message.error { background: #ffcdd2; color: #c62828; border: 1px solid #ef5350; display: block; }
+    .loading { display: none; text-align: center; margin-top: 10px; }
+    .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #4CAF50; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .info-box { background: #e3f2fd; border-left: 4px solid #2196F3; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: #1565c0; }
+    .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+    .shortcut-hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: #856404; }
+    .mouse-id-input-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+    .mouse-id-input-group input { flex: 1; }
+    .mouse-ids-list { background: #f5f5f5; padding: 15px; border-radius: 6px; margin-top: 15px; min-height: 60px; }
+    .mouse-id-tag { display: inline-block; background: #4CAF50; color: white; padding: 6px 12px; border-radius: 4px; margin: 5px 5px 5px 0; font-size: 13px; }
+    .mouse-id-tag .remove { margin-left: 8px; cursor: pointer; font-weight: bold; }
+    @media (max-width: 600px) { .field-row-3 { grid-template-columns: 1fr; } .header h1 { font-size: 22px; } .form-section { padding: 20px; } .nav-tab { min-width: 100px; font-size: 12px; padding: 10px 15px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🐭 Mouse Data Tracker</h1>
+      <p>Fast data collection</p>
+    </div>
+    
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('tempWeights', event)">📊 Temps & Weights</button>
+      <button class="nav-tab" onclick="showPage('tumorVolume', event)">🔴 Tumor Volume</button>
+      <button class="nav-tab" onclick="showPage('cohortSetup', event)">⚙️ Setup Cohort</button>
+    </div>
+    
+    <div id="tempWeights" class="page active">
+      <div class="form-section">
+        <div class="shortcut-hint">⚡ <strong>Quick entry:</strong> Type Mouse ID → Tab → Pre-Temp → Tab → Post-Temp → Tab → Weight → Enter</div>
+        <div class="info-box">ℹ️ Collection schedule: Monday, Wednesday, Friday</div>
+        <form id="tempWeightForm">
+          <div class="form-group">
+            <label for="tw_date">Date <span class="required">*</span></label>
+            <input type="date" id="tw_date" required>
+          </div>
+          <div class="form-group">
+            <label for="tw_mouseID">Mouse ID <span class="required">*</span></label>
+            <input type="text" id="tw_mouseID" placeholder="e.g., A001, B015, C003" required autofocus>
+          </div>
+          <div class="field-row-3">
+            <div class="form-group">
+              <label for="tw_preTemp">Pre-Temp (°C) <span class="required">*</span></label>
+              <input type="number" id="tw_preTemp" step="0.1" min="30" max="40" placeholder="37.2" required>
+            </div>
+            <div class="form-group">
+              <label for="tw_postTemp">Post-Temp (°C) <span class="required">*</span></label>
+              <input type="number" id="tw_postTemp" step="0.1" min="30" max="40" placeholder="36.8" required>
+            </div>
+            <div class="form-group">
+              <label for="tw_weight">Weight (g) <span class="required">*</span></label>
+              <input type="number" id="tw_weight" step="0.1" min="10" max="50" placeholder="24.5" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="tw_died">
+              <label for="tw_died">☠️ Mouse died today?</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tw_notes">Notes (Optional)</label>
+            <textarea id="tw_notes" placeholder="Any observations..."></textarea>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Submit & Clear</button>
+            <button type="button" class="btn-secondary" onclick="document.getElementById('tw_mouseID').focus()">Focus ID</button>
+          </div>
+          <div class="loading" id="tw_loading"><div class="spinner"></div><p>Uploading...</p></div>
+          <div class="message" id="tw_message"></div>
+        </form>
+      </div>
+    </div>
+    
+    <div id="tumorVolume" class="page">
+      <div class="form-section">
+        <div class="info-box">ℹ️ Log tumor volumes separately from temp/weight data</div>
+        <form id="tumorForm">
+          <div class="form-group">
+            <label for="tv_date">Date <span class="required">*</span></label>
+            <input type="date" id="tv_date" required>
+          </div>
+          <div class="form-group">
+            <label for="tv_mouseID">Mouse ID <span class="required">*</span></label>
+            <input type="text" id="tv_mouseID" placeholder="e.g., A001, B015, C003" required>
+          </div>
+          <div class="form-group">
+            <label for="tv_tumorVolume">Tumor Volume (mm³) <span class="required">*</span></label>
+            <input type="number" id="tv_tumorVolume" step="1" min="0" placeholder="150" required>
+          </div>
+          <div class="form-group">
+            <label for="tv_notes">Notes (Optional)</label>
+            <textarea id="tv_notes" placeholder="e.g., measurement method, location, etc."></textarea>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Submit Tumor Volume</button>
+            <button type="reset" class="btn-secondary">Clear Form</button>
+          </div>
+          <div class="loading" id="tv_loading"><div class="spinner"></div><p>Uploading...</p></div>
+          <div class="message" id="tv_message"></div>
+        </form>
+      </div>
+    </div>
+    
+    <div id="cohortSetup" class="page">
+      <div class="form-section">
+        <div class="info-box">ℹ️ Set up a new cohort and add all mouse IDs. You can add more mice later by setting up again.</div>
+        <form id="cohortSetupForm">
+          <div class="form-group">
+            <label for="cs_cohortName">Cohort Name <span class="required">*</span></label>
+            <input type="text" id="cs_cohortName" placeholder="e.g., Treatment_A, Control" required>
+          </div>
+          <div class="form-group">
+            <label for="cs_treatment">Treatment Description</label>
+            <input type="text" id="cs_treatment" placeholder="e.g., Drug_X (High Dose)">
+          </div>
+          <div class="form-group">
+            <label for="cs_startDate">Start Date <span class="required">*</span></label>
+            <input type="date" id="cs_startDate" required>
+          </div>
+          <div class="form-group">
+            <label for="cs_targetN">Target N (number of mice) <span class="required">*</span></label>
+            <input type="number" id="cs_targetN" min="1" placeholder="5" required>
+          </div>
+          <div class="form-group">
+            <label>Mouse IDs <span class="required">*</span></label>
+            <div class="mouse-id-input-group">
+              <input type="text" id="cs_mouseIDInput" placeholder="e.g., A001 or paste: A001,A002,A003" maxlength="200">
+              <button type="button" class="btn-add-mouse" onclick="addMouseIDToList()">Add</button>
+            </div>
+            <small style="color: #666; display: block; margin-top: 8px;">Tip: Enter single ID and click Add, OR paste multiple IDs separated by commas</small>
+          </div>
+          <div class="mouse-ids-list" id="cs_mouseIDsList">
+            <strong>Mouse IDs to add:</strong>
+            <div id="cs_mouseIDTags" style="margin-top: 10px;"><em style="color: #999;">No mice added yet</em></div>
+          </div>
+          <div class="form-group">
+            <label for="cs_notes">Notes</label>
+            <textarea id="cs_notes" placeholder="Any additional information about this cohort..."></textarea>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Create Cohort & Add Mice</button>
+            <button type="reset" class="btn-secondary">Clear Form</button>
+          </div>
+          <div class="loading" id="cs_loading"><div class="spinner"></div><p>Setting up cohort...</p></div>
+          <div class="message" id="cs_message"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = "1dHvSjO18Bg2LzkL6UwEDNWaIZhh5qOfJtZkVvpI5aII";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5SwMLyv3ikVgEBGKgYskSc8ZQAoCsO_IGaQguqotejY0u-d6mfRxcZLCp67AH-Vd-Qg/exec";
+    let mouseIDsToAdd = [];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      setTodayDates();
+      document.getElementById('tempWeightForm').addEventListener('submit', handleTempWeightSubmit);
+      document.getElementById('tumorForm').addEventListener('submit', handleTumorSubmit);
+      document.getElementById('cohortSetupForm').addEventListener('submit', handleCohortSetupSubmit);
+      document.getElementById('tw_weight').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('tempWeightForm').dispatchEvent(new Event('submit'));
+      });
+    });
+    
+    function showPage(pageName, event) {
+      event.preventDefault();
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(pageName).classList.add('active');
+      event.target.classList.add('active');
+      if (pageName === 'tempWeights') document.getElementById('tw_mouseID').focus();
+      else if (pageName === 'tumorVolume') document.getElementById('tv_mouseID').focus();
+      else if (pageName === 'cohortSetup') document.getElementById('cs_cohortName').focus();
+    }
+    
+    function setTodayDates() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('tw_date').value = today;
+      document.getElementById('tv_date').value = today;
+      document.getElementById('cs_startDate').value = today;
+    }
+    
+    function showMessage(elementId, text, type) {
+      const messageDiv = document.getElementById(elementId);
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      if (type === 'success') setTimeout(() => { messageDiv.classList.remove('success'); messageDiv.textContent = ''; }, 5000);
+    }
+    
+    function validateConfiguration() {
+      if (APPS_SCRIPT_URL.includes("YOUR_")) {
+        showMessage('tw_message', '❌ ERROR: Update APPS_SCRIPT_URL', 'error');
+        return false;
+      }
+      return true;
+    }
+    
+    function addMouseIDToList() {
+      const input = document.getElementById('cs_mouseIDInput');
+      const value = input.value.trim();
+      if (!value) { alert('Please enter at least one mouse ID'); return; }
+      const ids = value.split(',').map(id => id.trim()).filter(id => id.length > 0);
+      ids.forEach(id => { if (!mouseIDsToAdd.includes(id)) mouseIDsToAdd.push(id); });
+      input.value = '';
+      renderMouseIDTags();
+    }
+    
+    function renderMouseIDTags() {
+      const tagsDiv = document.getElementById('cs_mouseIDTags');
+      if (mouseIDsToAdd.length === 0) { tagsDiv.innerHTML = '<em style="color: #999;">No mice added yet</em>'; return; }
+      tagsDiv.innerHTML = mouseIDsToAdd.map(id => `<span class="mouse-id-tag">${id} <span class="remove" onclick="removeMouseID('${id}')">×</span></span>`).join('');
+    }
+    
+    function removeMouseID(id) {
+      mouseIDsToAdd = mouseIDsToAdd.filter(m => m !== id);
+      renderMouseIDTags();
+    }
+    
+    async function handleTempWeightSubmit(e) {
+      e.preventDefault();
+      if (!validateConfiguration()) return;
+      const mouseID = document.getElementById('tw_mouseID').value.trim().toUpperCase();
+      if (!mouseID) { showMessage('tw_message', '❌ Please enter a mouse ID', 'error'); document.getElementById('tw_mouseID').focus(); return; }
+      const formData = { type: 'addTemp', date: document.getElementById('tw_date').value, mouseID: mouseID, preTemp: parseFloat(document.getElementById('tw_preTemp').value), postTemp: parseFloat(document.getElementById('tw_postTemp').value), weight: parseFloat(document.getElementById('tw_weight').value), died: document.getElementById('tw_died').checked, notes: document.getElementById('tw_notes').value };
+      document.getElementById('tw_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#tempWeightForm .btn-primary');
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(formData) });
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        document.getElementById('tw_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('tw_message', `✓ ${mouseID} recorded!`, 'success');
+        document.getElementById('tw_mouseID').value = '';
+        document.getElementById('tw_preTemp').value = '';
+        document.getElementById('tw_postTemp').value = '';
+        document.getElementById('tw_weight').value = '';
+        document.getElementById('tw_died').checked = false;
+        document.getElementById('tw_notes').value = '';
+        document.getElementById('tw_mouseID').focus();
+      } catch(error) {
+        document.getElementById('tw_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('tw_message', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+    
+    async function handleTumorSubmit(e) {
+      e.preventDefault();
+      if (!validateConfiguration()) return;
+      const mouseID = document.getElementById('tv_mouseID').value.trim().toUpperCase();
+      if (!mouseID) { showMessage('tv_message', '❌ Please enter a mouse ID', 'error'); document.getElementById('tv_mouseID').focus(); return; }
+      const formData = { type: 'addTumor', date: document.getElementById('tv_date').value, mouseID: mouseID, tumorVolume: parseFloat(document.getElementById('tv_tumorVolume').value), notes: document.getElementById('tv_notes').value };
+      document.getElementById('tv_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#tumorForm .btn-primary');
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(formData) });
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        document.getElementById('tv_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('tv_message', `✓ Tumor recorded!`, 'success');
+        document.getElementById('tumorForm').reset();
+        setTodayDates();
+        document.getElementById('tv_mouseID').focus();
+      } catch(error) {
+        document.getElementById('tv_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('tv_message', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+    
+    async function handleCohortSetupSubmit(e) {
+      e.preventDefault();
+      if (!validateConfiguration()) return;
+      const cohortName = document.getElementById('cs_cohortName').value.trim();
+      if (!cohortName) { showMessage('cs_message', '❌ Please enter cohort name', 'error'); return; }
+      if (mouseIDsToAdd.length === 0) { showMessage('cs_message', '❌ Please add at least one mouse ID', 'error'); return; }
+      const formData = { type: 'addMice', cohort: cohortName, mouseIDs: mouseIDsToAdd, treatment: document.getElementById('cs_treatment').value, startDate: document.getElementById('cs_startDate').value, targetN: parseInt(document.getElementById('cs_targetN').value), notes: document.getElementById('cs_notes').value };
+      document.getElementById('cs_loading').style.display = 'block';
+      const submitBtn = document.querySelector('#cohortSetupForm .btn-primary');
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(formData) });
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        document.getElementById('cs_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('cs_message', `✓ Cohort "${cohortName}" created!`, 'success');
+        document.getElementById('cohortSetupForm').reset();
+        mouseIDsToAdd = [];
+        renderMouseIDTags();
+        setTodayDates();
+      } catch(error) {
+        document.getElementById('cs_loading').style.display = 'none';
+        submitBtn.disabled = false;
+        showMessage('cs_message', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
