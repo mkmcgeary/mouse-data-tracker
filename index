@@ -193,7 +193,7 @@
 
   <script>
     const SHEET_ID = "1dHvSjO18Bg2LzkL6UwEDNWaIZhh5qOfJtZkVvpI5aII";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9OSuBTVxqDf34atKz_4j_ghz92VeFPcqC6UB0pfpN-FbdtKFft5mFuZUBMiryu8sV1Q/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5SwMLyv3ikVgEBGKgYskSc8ZQAoCsO_IGaQguqotejY0u-d6mfRxcZLCp67AH-Vd-Qg/exec";
     let mouseIDsToAdd = [];
     
     document.addEventListener('DOMContentLoaded', () => {
