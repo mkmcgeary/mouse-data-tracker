@@ -32,10 +32,12 @@
     </div>
 
     <div class="nav">
-      <button class="active" onclick="switchTab('temps')">📊 Temps & Weights</button>
-      <button onclick="switchTab('tumor')">🔴 Tumor Volume</button>
-      <button onclick="switchTab('setup')">⚙️ Setup Cohort</button>
+      <button class="tab-button" onclick="openTab(event, 'setupCohort')">⚙️ Setup Cohort</button>
+      <button class="tab-button" onclick="openTab(event, 'tempForm')">📊 Temps & Weights</button>
+      <button class="tab-button" onclick="openTab(event, 'tumorForm')">🔴 Tumor Volume</button>
       <button class="tab-button" onclick="openTab(event, 'updateTag')">🏷️ Update Mouse Tag</button>
+      <button class="tab-button" onclick="openTab(event, 'generateExport')">📊 Generate Export</button>
+</div>
     </div>
 
     <div id="temps" class="page active">
