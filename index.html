@@ -35,6 +35,7 @@
       <button class="active" onclick="switchTab('temps')">📊 Temps & Weights</button>
       <button onclick="switchTab('tumor')">🔴 Tumor Volume</button>
       <button onclick="switchTab('setup')">⚙️ Setup Cohort</button>
+      <button class="tab-button" onclick="openTab(event, 'updateTag')">🏷️ Update Mouse Tag</button>
     </div>
 
     <div id="temps" class="page active">
@@ -133,6 +134,54 @@
       </form>
     </div>
   </div>
+
+  <div id="updateTag" class="tab-content">
+  <h2>🏷️ Update Mouse Tag</h2>
+  <p>When an ear tag falls out or needs replacement, update it here.</p>
+  
+  <form id="tagUpdateForm">
+    <div class="form-group">
+      <label>Research ID:</label>
+      <select id="tag_researchID" required>
+        <option value="">-- Select Mouse --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Current Tag (Read-only):</label>
+      <input type="text" id="tag_currentTag" readonly style="background-color: #f0f0f0;">
+    </div>
+    
+    <div class="form-group">
+      <label>New Tag Number:</label>
+      <input type="number" id="tag_newTag" placeholder="e.g., 567" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Reason:</label>
+      <select id="tag_reason" required>
+        <option value="">-- Select Reason --</option>
+        <option value="Fell out">Fell out</option>
+        <option value="Damaged">Damaged</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Date:</label>
+      <input type="date" id="tag_date" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes (optional):</label>
+      <textarea id="tag_notes" rows="2" placeholder="Any additional notes..."></textarea>
+    </div>
+    
+    <button type="submit" class="submit-button">✅ Update Tag</button>
+  </form>
+  
+  <div id="tagUpdateMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
+</div>
 
   <div style="background: #f9f9f9; padding: 20px; border-top: 2px solid #ddd; margin-top: 30px;">
       <h3>📊 Export Data for Analysis</h3>
@@ -246,6 +295,104 @@
         }
       });
     });
+ // RESEARCH_ID CACHE
+let researchIDCache = [];
+
+// Load Research IDs on page load
+async function loadResearchIDs() {
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({ type: 'getResearchIDs' })
+    });
+    console.log("Research IDs requested from Apps Script");
+  } catch(error) {
+    console.error("Error loading Research IDs:", error);
+  }
+}
+
+// Populate Research ID dropdown
+function populateResearchIDDropdown(ids) {
+  const dropdown = document.getElementById('tag_researchID');
+  const existingOptions = dropdown.querySelectorAll('option[value!=""]');
+  existingOptions.forEach(opt => opt.remove());
+  
+  ids.forEach(id => {
+    const option = document.createElement('option');
+    option.value = id.researchID;
+    option.text = `${id.researchID} (Tag: ${id.currentTag})`;
+    option.dataset.tag = id.currentTag;
+    dropdown.appendChild(option);
+  });
+}
+
+// When Research ID selected, show current tag
+document.getElementById('tag_researchID').addEventListener('change', function() {
+  const selectedOption = this.options[this.selectedIndex];
+  const currentTag = selectedOption.dataset.tag || '';
+  document.getElementById('tag_currentTag').value = currentTag;
+});
+
+// Set today's date by default
+document.getElementById('tag_date').valueAsDate = new Date();
+
+// Handle tag update form submission
+document.getElementById('tagUpdateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    type: 'updateMouseTag',
+    researchID: document.getElementById('tag_researchID').value,
+    currentTag: document.getElementById('tag_currentTag').value,
+    newTag: document.getElementById('tag_newTag').value,
+    reason: document.getElementById('tag_reason').value,
+    date: document.getElementById('tag_date').value,
+    notes: document.getElementById('tag_notes').value
+  };
+  
+  console.log("Updating tag with data:", data);
+  
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(data)
+    });
+    
+    console.log("Tag update sent");
+    
+    // Show success message
+    const messageDiv = document.getElementById('tagUpdateMessage');
+    messageDiv.style.display = 'block';
+    messageDiv.style.backgroundColor = '#d4edda';
+    messageDiv.style.color = '#155724';
+    messageDiv.innerHTML = `✅ Tag Updated!<br>Research ID: ${data.researchID}<br>${data.currentTag} → ${data.newTag}`;
+    
+    // Reset form
+    document.getElementById('tagUpdateForm').reset();
+    document.getElementById('tag_date').valueAsDate = new Date();
+    
+    // Clear current tag display
+    document.getElementById('tag_currentTag').value = '';
+    
+    // Hide message after 5 seconds
+    setTimeout(() => {
+      messageDiv.style.display = 'none';
+    }, 5000);
+    
+  } catch(error) {
+    console.error("Error:", error);
+    const messageDiv = document.getElementById('tagUpdateMessage');
+    messageDiv.style.display = 'block';
+    messageDiv.style.backgroundColor = '#f8d7da';
+    messageDiv.style.color = '#721c24';
+    messageDiv.innerHTML = '❌ Error updating tag. Check console.';
+  }
+});
+
+// Load Research IDs when page loads
+window.addEventListener('load', loadResearchIDs);
   </script>
 </body>
 </html>
