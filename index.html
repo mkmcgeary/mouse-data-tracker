@@ -68,6 +68,10 @@
           <label>Mouse ID:</label>
           <input type="text" id="temp_mouseID" placeholder="e.g., A001" required autofocus>
         </div>
+        <div class="form-group">
+          <label>Cohort:</label>
+          <input type="text" id="temp_cohort" readonly style="background-color: #f0f0f0;">
+        </div>
         <div class="field-row">
           <div class="form-group">
             <label>Pre-Temp (°C):</label>
@@ -368,12 +372,13 @@
       setDates();
 
       // Temp Form
-      document.getElementById('tempForm').addEventListener('submit', async (e) => {
+      document.getElementById('tempForm').addEventListener('submit', async f(e) => {
         e.preventDefault();
         const data = {
           type: 'addTemp',
           date: document.getElementById('temp_date').value,
           mouseID: document.getElementById('temp_mouseID').value.toUpperCase(),
+          cohort: document.getElementById('temp_cohort').value,  // ADD THIS LINE
           preTemp: parseFloat(document.getElementById('temp_preTemp').value),
           postTemp: parseFloat(document.getElementById('temp_postTemp').value),
           weight: parseFloat(document.getElementById('temp_weight').value),
@@ -546,7 +551,46 @@
       // Load data
       loadCohortsForExport();
       loadResearchIDs();
+      loadMouseList();
     });
+
+  // Mouse ID lookup cache
+let mouseListCache = [];
+
+// Load MOUSE_LIST on page load
+async function loadMouseList() {
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ type: 'getMouseList' })
+    });
+    
+    const result = await response.json();
+    if (result.success && result.data) {
+      mouseListCache = result.data;
+      console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
+    }
+  } catch(error) {
+    console.error("Error loading mouse list:", error);
+  }
+}
+
+// Look up cohort by mouse ID
+function lookupCohort(mouseID) {
+  const mouse = mouseListCache.find(m => String(m.currentTag).trim() === String(mouseID).trim());
+  return mouse ? mouse.cohort : "unknown";
+}
+
+// Auto-populate cohort when mouse ID changes
+document.addEventListener('DOMContentLoaded', () => {
+  const mouseIDInput = document.getElementById('temp_mouseID');
+  if (mouseIDInput) {
+    mouseIDInput.addEventListener('change', function() {
+      const cohort = lookupCohort(this.value);
+      document.getElementById('temp_cohort').value = cohort;
+    });
+  }
+});
   </script>
     
 </body>
