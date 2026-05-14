@@ -439,16 +439,26 @@ document.getElementById('tagUpdateForm').addEventListener('submit', async (e) =>
 window.addEventListener('load', loadResearchIDs);
 
     // Load cohorts for export selector
+// Load cohorts from Apps Script (no API key needed!)
 async function loadCohortsForExport() {
   try {
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
       body: JSON.stringify({ type: 'getCohortsList' })
     });
-    console.log("Cohorts requested");
+    
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      console.log("✅ Loaded cohorts:", result.data);
+      populateCohortCheckboxes(result.data);
+    } else {
+      console.log("No cohorts found");
+      populateCohortCheckboxes([]);
+    }
   } catch(error) {
     console.error("Error loading cohorts:", error);
+    populateCohortCheckboxes([]);
   }
 }
 
