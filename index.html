@@ -8,38 +8,20 @@
     body { font-family: Arial, sans-serif; background: #f0f0f0; max-width: 900px; margin: 0 auto; padding: 20px; }
     .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .header { text-align: center; color: #333; margin-bottom: 30px; }
-    .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-    .nav button { padding: 10px 20px; background: #f0f0f0; border: none; cursor: pointer; font-size: 14px; }
-    .nav button.active { background: #4CAF50; color: white; }
-    .page { display: none; }
-    .page.active { display: block; }
+    .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; }
+    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; box-sizing: border-box; }
     button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
     button:hover { background: #45a049; }
     .message { margin-top: 15px; padding: 10px; border-radius: 4px; }
     .success { background: #d4edda; color: #155724; }
     .error { background: #f8d7da; color: #721c24; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .tab-content {
-  display: none; 
-  padding: 20px;
-}
-
-.tab-content.active {
-  display: block;
-}
-    .tab-button {
-      padding: 12px 20px;
-      margin: 5px;
-      border: none;
-      background-color: #f0f0f0;
-      cursor: pointer;
-      border-radius: 5px;
-      font-weight: bold;
-      transition: all 0.3s; }
-    .tab-button:hover {background-color: #ddd; }
+    .tab-content { display: none; padding: 20px; }
+    .tab-content.active { display: block; }
+    .tab-button { padding: 12px 20px; margin: 5px; border: none; background-color: #f0f0f0; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.3s; }
+    .tab-button:hover { background-color: #ddd; }
   </style>
 </head>
 <body>
@@ -57,8 +39,38 @@
       <button class="tab-button" onclick="openTab(event, 'generateExportTab')">📊 Generate Export</button>
     </div>
 
-   <div id="tempTab" class="tab-content">
-      <h2>Temperature & Weight Entry</h2>
+    <!-- SETUP COHORT TAB -->
+    <div id="setupCohortTab" class="tab-content">
+      <h2>⚙️ Setup New Cohort</h2>
+      <form id="setupForm">
+        <div class="form-group">
+          <label>Cohort Name:</label>
+          <input type="text" id="setup_name" placeholder="e.g., KPC USGI" required>
+        </div>
+        <div class="form-group">
+          <label>Treatment:</label>
+          <input type="text" id="setup_treatment" placeholder="e.g., Drug X, Control, etc.">
+        </div>
+        <div class="form-group">
+          <label>Start Date:</label>
+          <input type="date" id="setup_startDate" required>
+        </div>
+        <div class="form-group">
+          <label>Target N:</label>
+          <input type="number" id="setup_n" placeholder="5" required>
+        </div>
+        <div class="form-group">
+          <label>Mouse IDs (comma-separated):</label>
+          <textarea id="setup_mice" placeholder="511,561,749" rows="3"></textarea>
+        </div>
+        <button type="submit">✅ Create Cohort</button>
+        <div id="setup_message"></div>
+      </form>
+    </div>
+
+    <!-- TEMP & WEIGHT TAB -->
+    <div id="tempTab" class="tab-content">
+      <h2>📊 Temperature & Weight Entry</h2>
       <form id="tempForm">
         <div class="form-group">
           <label>Date:</label>
@@ -66,7 +78,7 @@
         </div>
         <div class="form-group">
           <label>Mouse ID:</label>
-          <input type="text" id="temp_mouseID" placeholder="e.g., A001" required autofocus>
+          <input type="text" id="temp_mouseID" placeholder="e.g., 821" required autofocus>
         </div>
         <div class="form-group">
           <label>Cohort:</label>
@@ -105,8 +117,9 @@
       </form>
     </div>
 
-<div id="tumorTab" class="tab-content">
-      <h2>Tumor Volume Entry</h2>
+    <!-- TUMOR VOLUME TAB -->
+    <div id="tumorTab" class="tab-content">
+      <h2>🔴 Tumor Volume Entry</h2>
       <form id="tumorForm">
         <div class="form-group">
           <label>Date:</label>
@@ -114,7 +127,7 @@
         </div>
         <div class="form-group">
           <label>Mouse ID:</label>
-          <input type="text" id="tumor_mouseID" placeholder="e.g., A001" required>
+          <input type="text" id="tumor_mouseID" placeholder="e.g., 821" required>
         </div>
         <div class="form-group">
           <label>Tumor Volume (mm³):</label>
@@ -129,120 +142,78 @@
       </form>
     </div>
 
-<div id="setupCohortTab" class="tab-content">
-  <h2>⚙️ Setup New Cohort</h2>
-  <form id="setupForm">
-    <div class="form-group">
-      <label>Cohort Name:</label>
-      <input type="text" id="setup_name" placeholder="e.g., KPC USGI" required>
+    <!-- UPDATE MOUSE TAG TAB -->
+    <div id="updateTagTab" class="tab-content">
+      <h2>🏷️ Update Mouse Tag</h2>
+      <p>When an ear tag falls out or needs replacement, update it here.</p>
+      <form id="tagUpdateForm">
+        <div class="form-group">
+          <label>Research ID:</label>
+          <select id="tag_researchID" required>
+            <option value="">-- Select Mouse --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Current Tag (Read-only):</label>
+          <input type="text" id="tag_currentTag" readonly style="background-color: #f0f0f0;">
+        </div>
+        <div class="form-group">
+          <label>New Tag Number:</label>
+          <input type="number" id="tag_newTag" placeholder="e.g., 567" required>
+        </div>
+        <div class="form-group">
+          <label>Date:</label>
+          <input type="date" id="tag_date" required>
+        </div>
+        <div class="form-group">
+          <label>Notes (optional):</label>
+          <textarea id="tag_notes" rows="2" placeholder="Any additional notes..."></textarea>
+        </div>
+        <button type="submit">✅ Update Tag</button>
+      </form>
+      <div id="tagUpdateMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
     </div>
-    
-    <div class="form-group">
-      <label>Treatment:</label>
-      <input type="text" id="setup_treatment" placeholder="e.g., Drug X, Control, etc.">
-    </div>
-    
-    <div class="form-group">
-      <label>Start Date:</label>
-      <input type="date" id="setup_startDate" required>
-    </div>
-    
-    <div class="form-group">
-      <label>Target N:</label>
-      <input type="number" id="setup_n" placeholder="5" required>
-    </div>
-    
-    <div class="form-group">
-      <label>Mouse IDs (comma-separated):</label>
-      <textarea id="setup_mice" placeholder="511,561,749" rows="3"></textarea>
-    </div>
-    
-    <button type="submit">✅ Create Cohort</button>
-    <div id="setup_message"></div>
-  </form>
-</div>
 
-  <div id="updateTagTab" class="tab-content">
-  <h2>🏷️ Update Mouse Tag</h2>
-  <p>When an ear tag falls out or needs replacement, update it here.</p>
-  
-  <form id="tagUpdateForm">
-    <div class="form-group">
-      <label>Research ID:</label>
-      <select id="tag_researchID" required>
-        <option value="">-- Select Mouse --</option>
-      </select>
+    <!-- GENERATE EXPORT TAB -->
+    <div id="generateExportTab" class="tab-content">
+      <h2>📊 Generate Export</h2>
+      <p>Select which cohorts to include in the export files.</p>
+      <form id="exportForm">
+        <div class="form-group">
+          <label>Select Cohorts to Export:</label>
+          <div id="cohortCheckboxes" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+            <!-- Checkboxes will be populated here -->
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="selectAllCohorts"> Select All
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Export Type:</label>
+          <label><input type="radio" name="exportType" value="both" checked> Both Temperature & Weight</label>
+          <label><input type="radio" name="exportType" value="temp"> Temperature Only</label>
+          <label><input type="radio" name="exportType" value="weight"> Weight Only</label>
+        </div>
+        <button type="submit">✅ Generate Export</button>
+      </form>
+      <div id="exportMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
     </div>
-    
-    <div class="form-group">
-      <label>Current Tag (Read-only):</label>
-      <input type="text" id="tag_currentTag" readonly style="background-color: #f0f0f0;">
-    </div>
-    
-    <div class="form-group">
-      <label>New Tag Number:</label>
-      <input type="number" id="tag_newTag" placeholder="e.g., 567" required>
-    </div>
-    
-    <div class="form-group">
-      <label>Date:</label>
-      <input type="date" id="tag_date" required>
-    </div>
-    
-    <div class="form-group">
-      <label>Notes (optional):</label>
-      <textarea id="tag_notes" rows="2" placeholder="Any additional notes..."></textarea>
-    </div>
-    
-    <button type="submit" class="submit-button">✅ Update Tag</button>
-  </form>
-  
-  <div id="tagUpdateMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
-</div>
 
-<div id="generateExportTab" class="tab-content">
-  <h2>📊 Generate Export</h2>
-  <p>Select which cohorts to include in the export files.</p>
-  
-  <form id="exportForm">
-    <div class="form-group">
-      <label>Select Cohorts to Export:</label>
-      <div id="cohortCheckboxes" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
-        <!-- Checkboxes will be populated here -->
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label>
-        <input type="checkbox" id="selectAllCohorts"> Select All
-      </label>
-    </div>
-    
-    <div class="form-group">
-      <label>Export Type:</label>
-      <label><input type="radio" name="exportType" value="both" checked> Both Temperature & Weight</label>
-      <label><input type="radio" name="exportType" value="temp"> Temperature Only</label>
-      <label><input type="radio" name="exportType" value="weight"> Weight Only</label>
-    </div>
-    
-    <button type="submit" class="submit-button">✅ Generate Export</button>
-  </form>
-  
-  <div id="exportMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
-</div>
-  
-  <div style="background: #f9f9f9; padding: 20px; border-top: 2px solid #ddd; margin-top: 30px;">
+    <div style="background: #f9f9f9; padding: 20px; border-top: 2px solid #ddd; margin-top: 30px;">
       <h3>📊 Export Data for Analysis</h3>
       <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Download data as CSV for plotting in Excel, R, Python, etc.</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
-        <button onclick="downloadExport('EXPORT_TEMP')" style="background: #2196F3; padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📈 Temperature</button>
-        <button onclick="downloadExport('EXPORT_WEIGHT')" style="background: #2196F3; padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚖️ Weight</button>
-        <button onclick="downloadExport('EXPORT_TUMOR')" style="background: #2196F3; padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🔴 Tumor Volume</button>
-        <button onclick="downloadExport('EXPORT_SUMMARY')" style="background: #2196F3; padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📋 Summary</button>
+        <button onclick="downloadExport('TEMP_EXPORT')" style="background: #2196F3;">📈 Temperature</button>
+        <button onclick="downloadExport('WEIGHT_EXPORT')" style="background: #2196F3;">⚖️ Weight</button>
+        <button onclick="downloadExport('EXPORT_TUMOR')" style="background: #2196F3;">🔴 Tumor Volume</button>
+        <button onclick="downloadExport('EXPORT_SUMMARY')" style="background: #2196F3;">📋 Summary</button>
       </div>
     </div>
+  </div>
 
-<script>
+  <script>
     const SHEET_ID = "1dHvSjO18Bg2LzkL6UwEDNWaIZhh5qOfJtZkVvpI5aII";
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxunBCJdad8PyZee9UF6EFz20Gr6vhM_TnpLls80w5q2xiAbVF2uR_vo72-Pgq1RATfTg/exec";
 
@@ -269,7 +240,6 @@
       if (tagDate) tagDate.valueAsDate = new Date();
     }
 
-    // Tab switching
     function openTab(evt, tabName) {
       const tabContents = document.querySelectorAll('.tab-content');
       tabContents.forEach(tab => tab.style.display = 'none');
@@ -289,18 +259,38 @@
       }
     }
 
-    // LOAD COHORTS
+    let mouseListCache = [];
+
+    async function loadMouseList() {
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'getMouseList' })
+        });
+        
+        const result = await response.json();
+        if (result.success && result.data) {
+          mouseListCache = result.data;
+          console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
+        }
+      } catch(error) {
+        console.error("Error loading mouse list:", error);
+      }
+    }
+
+    function lookupCohort(mouseID) {
+      const mouse = mouseListCache.find(m => String(m.currentTag).trim() === String(mouseID).trim());
+      return mouse ? mouse.cohort : "unknown";
+    }
+
     async function loadCohortsForExport() {
       try {
-        console.log("Loading cohorts...");
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({ type: 'getCohortsList' })
         });
         
         const result = await response.json();
-        console.log("✅ Cohorts loaded:", result.data);
-        
         if (result.success && result.data) {
           populateCohortCheckboxes(result.data);
         }
@@ -330,18 +320,14 @@
       });
     }
 
-    // LOAD RESEARCH IDS
     async function loadResearchIDs() {
       try {
-        console.log("Loading Research IDs...");
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({ type: 'getResearchIDs' })
         });
         
         const result = await response.json();
-        console.log("✅ Research IDs loaded:", result.data);
-        
         if (result.success && result.data) {
           populateResearchIDDropdown(result.data);
         }
@@ -367,18 +353,17 @@
       }
     }
 
-    // FORM HANDLERS
     document.addEventListener('DOMContentLoaded', () => {
       setDates();
 
       // Temp Form
-      document.getElementById('tempForm').addEventListener('submit', async f(e) => {
+      document.getElementById('tempForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
           type: 'addTemp',
           date: document.getElementById('temp_date').value,
           mouseID: document.getElementById('temp_mouseID').value.toUpperCase(),
-          cohort: document.getElementById('temp_cohort').value,  // ADD THIS LINE
+          cohort: document.getElementById('temp_cohort').value,
           preTemp: parseFloat(document.getElementById('temp_preTemp').value),
           postTemp: parseFloat(document.getElementById('temp_postTemp').value),
           weight: parseFloat(document.getElementById('temp_weight').value),
@@ -529,6 +514,12 @@
         document.getElementById('tag_currentTag').value = currentTag;
       });
 
+      // Mouse ID lookup
+      document.getElementById('temp_mouseID').addEventListener('change', function() {
+        const cohort = lookupCohort(this.value);
+        document.getElementById('temp_cohort').value = cohort;
+      });
+
       // Select all cohorts
       document.getElementById('selectAllCohorts').addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.cohortCheckbox');
@@ -536,9 +527,8 @@
       });
     });
 
-    // ONE consolidated load event
+    // Load on page load
     window.addEventListener('load', function() {
-      // Open first tab
       const firstTab = document.querySelector('.tab-content');
       if (firstTab) firstTab.style.display = 'block';
       
@@ -548,50 +538,10 @@
         firstButton.style.color = 'white';
       }
       
-      // Load data
       loadCohortsForExport();
       loadResearchIDs();
       loadMouseList();
     });
-
-  // Mouse ID lookup cache
-let mouseListCache = [];
-
-// Load MOUSE_LIST on page load
-async function loadMouseList() {
-  try {
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ type: 'getMouseList' })
-    });
-    
-    const result = await response.json();
-    if (result.success && result.data) {
-      mouseListCache = result.data;
-      console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
-    }
-  } catch(error) {
-    console.error("Error loading mouse list:", error);
-  }
-}
-
-// Look up cohort by mouse ID
-function lookupCohort(mouseID) {
-  const mouse = mouseListCache.find(m => String(m.currentTag).trim() === String(mouseID).trim());
-  return mouse ? mouse.cohort : "unknown";
-}
-
-// Auto-populate cohort when mouse ID changes
-document.addEventListener('DOMContentLoaded', () => {
-  const mouseIDInput = document.getElementById('temp_mouseID');
-  if (mouseIDInput) {
-    mouseIDInput.addEventListener('change', function() {
-      const cohort = lookupCohort(this.value);
-      document.getElementById('temp_cohort').value = cohort;
-    });
-  }
-});
   </script>
-    
 </body>
 </html>
