@@ -261,7 +261,7 @@
 
     let mouseListCache = [];
 
-   async function loadMouseList() {
+async function loadMouseList() {
   try {
     console.log("📥 Requesting mouse list from Apps Script...");
     const response = await fetch(APPS_SCRIPT_URL, {
@@ -270,19 +270,20 @@
     });
     
     const result = await response.json();
-    console.log("📊 Response received:", result);
+    console.log("📊 Full response:", result);
+    console.log("success?:", result.success);
+    console.log("data?:", result.data);
+    console.log("error?:", result.error);
     
     if (result.success && result.data) {
       mouseListCache = result.data;
       console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
-      console.log("First few mice:", mouseListCache.slice(0, 5));
+      console.log("First mouse:", mouseListCache[0]);
     } else {
-      console.log("❌ No data in response");
-      mouseListCache = [];
+      console.log("❌ Response issue - success:", result.success, "has data:", !!result.data);
     }
   } catch(error) {
-    console.error("❌ Error loading mouse list:", error);
-    mouseListCache = [];
+    console.error("❌ Fetch error:", error);
   }
 }
 
