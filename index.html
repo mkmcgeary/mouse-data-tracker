@@ -50,14 +50,14 @@
     </div>
 
     <div class="nav">
-      <button class="tab-button" onclick="openTab(event, 'setupCohort')">⚙️ Setup Cohort</button>
-      <button class="tab-button" onclick="openTab(event, 'tempForm')">📊 Temps & Weights</button>
-      <button class="tab-button" onclick="openTab(event, 'tumorForm')">🔴 Tumor Volume</button>
-      <button class="tab-button" onclick="openTab(event, 'updateTag')">🏷️ Update Mouse Tag</button>
-      <button class="tab-button" onclick="openTab(event, 'generateExport')">📊 Generate Export</button>
+      <button class="tab-button" onclick="openTab(event, 'setupCohortTab')">⚙️ Setup Cohort</button>
+      <button class="tab-button" onclick="openTab(event, 'tempTab')">📊 Temps & Weights</button>
+      <button class="tab-button" onclick="openTab(event, 'tumorTab')">🔴 Tumor Volume</button>
+      <button class="tab-button" onclick="openTab(event, 'updateTagTab')">🏷️ Update Mouse Tag</button>
+      <button class="tab-button" onclick="openTab(event, 'generateExportTab')">📊 Generate Export</button>
     </div>
 
-   <div id="tempForm" class="tab-content">
+   <div id="tempTab" class="tab-content">
       <h2>Temperature & Weight Entry</h2>
       <form id="tempForm">
         <div class="form-group">
@@ -101,7 +101,7 @@
       </form>
     </div>
 
-<div id="tumorForm" class="tab-content">
+<div id="tumorTab" class="tab-content">
       <h2>Tumor Volume Entry</h2>
       <form id="tumorForm">
         <div class="form-group">
@@ -125,7 +125,7 @@
       </form>
     </div>
 
-<div id="setupCohort" class="tab-content">
+<div id="setupCohortTab" class="tab-content">
   <h2>⚙️ Setup New Cohort</h2>
   <form id="setupForm">
     <div class="form-group">
@@ -158,7 +158,7 @@
   </form>
 </div>
 
-  <div id="updateTag" class="tab-content">
+  <div id="updateTagTab" class="tab-content">
   <h2>🏷️ Update Mouse Tag</h2>
   <p>When an ear tag falls out or needs replacement, update it here.</p>
   
@@ -196,7 +196,7 @@
   <div id="tagUpdateMessage" style="display:none; margin-top: 20px; padding: 15px; border-radius: 5px;"></div>
 </div>
 
-<div id="generateExport" class="tab-content">
+<div id="generateExportTab" class="tab-content">
   <h2>📊 Generate Export</h2>
   <p>Select which cohorts to include in the export files.</p>
   
