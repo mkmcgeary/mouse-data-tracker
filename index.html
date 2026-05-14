@@ -262,11 +262,19 @@
     }
 
     function setDates() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('temp_date').value = today;
-      document.getElementById('tumor_date').value = today;
-      document.getElementById('setup_date').value = today;
-    }
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Set dates only if they exist
+  const tempDate = document.getElementById('temp_date');
+  const tumorDate = document.getElementById('tumor_date');
+  const setupDate = document.getElementById('setup_startDate');
+  const tagDate = document.getElementById('tag_date');
+  
+  if (tempDate) tempDate.value = today;
+  if (tumorDate) tumorDate.value = today;
+  if (setupDate) setupDate.value = today;
+  if (tagDate) tagDate.valueAsDate = new Date();
+}
 
     document.addEventListener('DOMContentLoaded', () => {
       setDates();
