@@ -62,6 +62,10 @@
           <label>Mouse IDs (comma-separated):</label>
           <textarea id="setup_mice" placeholder="511,561,749" rows="3"></textarea>
         </div>
+        <div class="form-group">
+          <label>Mouse IDs with Cage Numbers (format: ID-cage, ID-cage):</label>
+          <textarea id="setup_mice" placeholder="511-A1, 561-A2, 749-B1" rows="3"></textarea>
+        </div>
         <button type="submit">✅ Create Cohort</button>
         <div id="setup_message"></div>
       </form>
@@ -414,28 +418,40 @@ async function loadMouseList() {
         }
       });
 
-      // Setup Form
-      document.getElementById('setupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const mice = document.getElementById('setup_mice').value.split(',').map(m => m.trim()).filter(m => m);
-        const data = {
-          type: 'addCohort',
-          cohort: document.getElementById('setup_name').value,
-          treatment: document.getElementById('setup_treatment').value,
-          startDate: document.getElementById('setup_startDate').value,
-          mouseIDs: mice,
-          targetN: parseInt(document.getElementById('setup_n').value)
-        };
-        try {
-          await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-          document.getElementById('setup_message').innerHTML = '<div class="message success">✓ Cohort created!</div>';
-          document.getElementById('setupForm').reset();
-          setDates();
-          setTimeout(() => { document.getElementById('setup_message').innerHTML = ''; }, 3000);
-        } catch(e) {
-          document.getElementById('setup_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
-        }
-      });
+     // Setup Form
+document.getElementById('setupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // Parse "ID-cage" format
+  const miceInput = document.getElementById('setup_mice').value.split('\n').map(m => m.trim()).filter(m => m);
+  const mice = [];
+  
+  miceInput.forEach(entry => {
+    const parts = entry.split('-').map(p => p.trim());
+    mice.push({
+      id: parts[0],
+      cage: parts[1] || ""
+    });
+  });
+  
+  const data = {
+    type: 'addCohort',
+    cohort: document.getElementById('setup_name').value,
+    treatment: document.getElementById('setup_treatment').value,
+    startDate: document.getElementById('setup_startDate').value,
+    mouseIDs: mice,
+    targetN: parseInt(document.getElementById('setup_n').value)
+  };
+  try {
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+    document.getElementById('setup_message').innerHTML = '<div class="message success">✓ Cohort created!</div>';
+    document.getElementById('setupForm').reset();
+    setDates();
+    setTimeout(() => { document.getElementById('setup_message').innerHTML = ''; }, 3000);
+  } catch(e) {
+    document.getElementById('setup_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
+  }
+});
 
       // Tag Update Form
       document.getElementById('tagUpdateForm').addEventListener('submit', async (e) => {
