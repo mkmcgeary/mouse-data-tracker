@@ -358,15 +358,24 @@
  // RESEARCH_ID CACHE
 let researchIDCache = [];
 
-// Load Research IDs on page load
+// Load Research IDs from Apps Script (no API key needed!)
 async function loadResearchIDs() {
   try {
+    console.log("Loading Research IDs...");
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
       body: JSON.stringify({ type: 'getResearchIDs' })
     });
-    console.log("Research IDs requested from Apps Script");
+    
+    const result = await response.json();
+    console.log("Research IDs response:", result);
+    
+    if (result.success && result.data) {
+      console.log("✅ Loaded Research IDs:", result.data);
+      populateResearchIDDropdown(result.data);
+    } else {
+      console.log("No Research IDs found");
+    }
   } catch(error) {
     console.error("Error loading Research IDs:", error);
   }
