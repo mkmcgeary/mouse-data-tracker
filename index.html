@@ -181,16 +181,6 @@
     </div>
     
     <div class="form-group">
-      <label>Reason:</label>
-      <select id="tag_reason" required>
-        <option value="">-- Select Reason --</option>
-        <option value="Fell out">Fell out</option>
-        <option value="Damaged">Damaged</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-    
-    <div class="form-group">
       <label>Date:</label>
       <input type="date" id="tag_date" required>
     </div>
@@ -415,7 +405,6 @@ document.getElementById('tagUpdateForm').addEventListener('submit', async (e) =>
     researchID: document.getElementById('tag_researchID').value,
     currentTag: document.getElementById('tag_currentTag').value,
     newTag: document.getElementById('tag_newTag').value,
-    reason: document.getElementById('tag_reason').value,
     date: document.getElementById('tag_date').value,
     notes: document.getElementById('tag_notes').value
   };
