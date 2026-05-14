@@ -261,22 +261,30 @@
 
     let mouseListCache = [];
 
-    async function loadMouseList() {
-      try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'getMouseList' })
-        });
-        
-        const result = await response.json();
-        if (result.success && result.data) {
-          mouseListCache = result.data;
-          console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
-        }
-      } catch(error) {
-        console.error("Error loading mouse list:", error);
-      }
+   async function loadMouseList() {
+  try {
+    console.log("📥 Requesting mouse list from Apps Script...");
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ type: 'getMouseList' })
+    });
+    
+    const result = await response.json();
+    console.log("📊 Response received:", result);
+    
+    if (result.success && result.data) {
+      mouseListCache = result.data;
+      console.log("✅ Mouse list loaded:", mouseListCache.length, "mice");
+      console.log("First few mice:", mouseListCache.slice(0, 5));
+    } else {
+      console.log("❌ No data in response");
+      mouseListCache = [];
     }
+  } catch(error) {
+    console.error("❌ Error loading mouse list:", error);
+    mouseListCache = [];
+  }
+}
 
     function lookupCohort(mouseID) {
       const mouse = mouseListCache.find(m => String(m.currentTag).trim() === String(mouseID).trim());
