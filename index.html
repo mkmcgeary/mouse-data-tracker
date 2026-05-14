@@ -349,6 +349,7 @@
 let researchIDCache = [];
 
 // Load Research IDs from Apps Script (no API key needed!)
+// Load Research IDs from Apps Script
 async function loadResearchIDs() {
   try {
     console.log("Loading Research IDs...");
@@ -358,122 +359,42 @@ async function loadResearchIDs() {
     });
     
     const result = await response.json();
-    console.log("Research IDs response:", result);
+    console.log("🔍 Response:", result);
     
     if (result.success && result.data) {
-      console.log("✅ Loaded Research IDs:", result.data);
+      console.log("✅ Got", result.data.length, "Research IDs");
       populateResearchIDDropdown(result.data);
     } else {
-      console.log("No Research IDs found");
+      console.log("⚠️ No data in response");
+      populateResearchIDDropdown([]);
     }
   } catch(error) {
     console.error("Error loading Research IDs:", error);
+    populateResearchIDDropdown([]);
   }
 }
 
 // Populate Research ID dropdown
 function populateResearchIDDropdown(ids) {
   const dropdown = document.getElementById('tag_researchID');
-  const existingOptions = dropdown.querySelectorAll('option[value!=""]');
-  existingOptions.forEach(opt => opt.remove());
   
-  ids.forEach(id => {
-    const option = document.createElement('option');
-    option.value = id.researchID;
-    option.text = `${id.researchID} (Tag: ${id.currentTag})`;
-    option.dataset.tag = id.currentTag;
-    dropdown.appendChild(option);
-  });
-}
-
-// When Research ID selected, show current tag
-document.getElementById('tag_researchID').addEventListener('change', function() {
-  const selectedOption = this.options[this.selectedIndex];
-  const currentTag = selectedOption.dataset.tag || '';
-  document.getElementById('tag_currentTag').value = currentTag;
-});
-
-// Set today's date by default
-document.getElementById('tag_date').valueAsDate = new Date();
-
-// Handle tag update form submission
-document.getElementById('tagUpdateForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const data = {
-    type: 'updateMouseTag',
-    researchID: document.getElementById('tag_researchID').value,
-    currentTag: document.getElementById('tag_currentTag').value,
-    newTag: document.getElementById('tag_newTag').value,
-    date: document.getElementById('tag_date').value,
-    notes: document.getElementById('tag_notes').value
-  };
-  
-  console.log("Updating tag with data:", data);
-  
-  try {
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(data)
-    });
-    
-    console.log("Tag update sent");
-    
-    // Show success message
-    const messageDiv = document.getElementById('tagUpdateMessage');
-    messageDiv.style.display = 'block';
-    messageDiv.style.backgroundColor = '#d4edda';
-    messageDiv.style.color = '#155724';
-    messageDiv.innerHTML = `✅ Tag Updated!<br>Research ID: ${data.researchID}<br>${data.currentTag} → ${data.newTag}`;
-    
-    // Reset form
-    document.getElementById('tagUpdateForm').reset();
-    document.getElementById('tag_date').valueAsDate = new Date();
-    
-    // Clear current tag display
-    document.getElementById('tag_currentTag').value = '';
-    
-    // Hide message after 5 seconds
-    setTimeout(() => {
-      messageDiv.style.display = 'none';
-    }, 5000);
-    
-  } catch(error) {
-    console.error("Error:", error);
-    const messageDiv = document.getElementById('tagUpdateMessage');
-    messageDiv.style.display = 'block';
-    messageDiv.style.backgroundColor = '#f8d7da';
-    messageDiv.style.color = '#721c24';
-    messageDiv.innerHTML = '❌ Error updating tag. Check console.';
+  // Remove all options except the first placeholder
+  while (dropdown.options.length > 1) {
+    dropdown.remove(1);
   }
-});
-
-// Load Research IDs when page loads
-window.addEventListener('load', loadResearchIDs);
-
-    // Load cohorts for export selector
-// Load cohorts from Apps Script (no API key needed!)
-async function loadCohortsForExport() {
-  try {
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ type: 'getCohortsList' })
+  
+  // Add new options
+  if (ids && ids.length > 0) {
+    ids.forEach(id => {
+      const option = document.createElement('option');
+      option.value = id.researchID;
+      option.text = `${id.researchID} (Tag: ${id.currentTag})`;
+      option.dataset.tag = id.currentTag;
+      dropdown.appendChild(option);
     });
-    
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-      console.log("✅ Loaded cohorts:", result.data);
-      populateCohortCheckboxes(result.data);
-    } else {
-      console.log("No cohorts found");
-      populateCohortCheckboxes([]);
-    }
-  } catch(error) {
-    console.error("Error loading cohorts:", error);
-    populateCohortCheckboxes([]);
   }
+  
+  console.log("✅ Populated dropdown with", ids.length, "Research IDs");
 }
 
 // Populate cohort checkboxes
