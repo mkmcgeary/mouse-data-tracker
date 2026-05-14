@@ -126,33 +126,37 @@
     </div>
 
 <div id="setupCohort" class="tab-content">
-      <h2>Setup New Cohort</h2>
-      <form id="setupForm">
-        <div class="form-group">
-          <label>Cohort Name:</label>
-          <input type="text" id="setup_name" placeholder="e.g., Treatment_A" required>
-        </div>
-        <div class="form-group">
-          <label>Treatment:</label>
-          <input type="text" id="setup_treatment" placeholder="e.g., Drug X">
-        </div>
-        <div class="form-group">
-          <label>Start Date:</label>
-          <input type="date" id="setup_date" required>
-        </div>
-        <div class="form-group">
-          <label>Target N:</label>
-          <input type="number" id="setup_n" placeholder="5" required>
-        </div>
-        <div class="form-group">
-          <label>Mouse IDs (comma-separated):</label>
-          <textarea id="setup_mice" placeholder="A001,A002,A003" rows="3"></textarea>
-        </div>
-        <button type="submit">Create Cohort</button>
-        <div id="setup_message"></div>
-      </form>
+  <h2>⚙️ Setup New Cohort</h2>
+  <form id="setupForm">
+    <div class="form-group">
+      <label>Cohort Name:</label>
+      <input type="text" id="setup_name" placeholder="e.g., KPC USGI" required>
     </div>
-  </div>
+    
+    <div class="form-group">
+      <label>Treatment:</label>
+      <input type="text" id="setup_treatment" placeholder="e.g., Drug X, Control, etc.">
+    </div>
+    
+    <div class="form-group">
+      <label>Start Date:</label>
+      <input type="date" id="setup_startDate" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Target N:</label>
+      <input type="number" id="setup_n" placeholder="5" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Mouse IDs (comma-separated):</label>
+      <textarea id="setup_mice" placeholder="511,561,749" rows="3"></textarea>
+    </div>
+    
+    <button type="submit">✅ Create Cohort</button>
+    <div id="setup_message"></div>
+  </form>
+</div>
 
   <div id="updateTag" class="tab-content">
   <h2>🏷️ Update Mouse Tag</h2>
@@ -318,26 +322,30 @@
       });
 
       document.getElementById('setupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const mice = document.getElementById('setup_mice').value.split(',').map(m => m.trim());
-        const data = {
-          type: 'addMice',
-          cohort: document.getElementById('setup_name').value,
-          mouseIDs: mice,
-          treatment: document.getElementById('setup_treatment').value,
-          startDate: document.getElementById('setup_date').value,
-          targetN: parseInt(document.getElementById('setup_n').value)
-        };
-        try {
-          const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-          document.getElementById('setup_message').innerHTML = '<div class="message success">✓ Cohort created!</div>';
-          document.getElementById('setupForm').reset();
-          setDates();
-          setTimeout(() => { document.getElementById('setup_message').innerHTML = ''; }, 3000);
-        } catch(e) {
-          document.getElementById('setup_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
-        }
-      });
+  e.preventDefault();
+  const mice = document.getElementById('setup_mice').value.split(',').map(m => m.trim()).filter(m => m);
+  const data = {
+    type: 'addCohort',
+    cohort: document.getElementById('setup_name').value,
+    treatment: document.getElementById('setup_treatment').value,
+    startDate: document.getElementById('setup_startDate').value,
+    mouseIDs: mice,
+    targetN: parseInt(document.getElementById('setup_n').value)
+  };
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, { 
+      method: 'POST', 
+      mode: 'no-cors', 
+      body: JSON.stringify(data) 
+    });
+    document.getElementById('setup_message').innerHTML = '<div class="message success">✓ Cohort created!</div>';
+    document.getElementById('setupForm').reset();
+    setDates();
+    setTimeout(() => { document.getElementById('setup_message').innerHTML = ''; }, 3000);
+  } catch(e) {
+    document.getElementById('setup_message').innerHTML = '<div class="message error">Error: ' + e.message + '</div>';
+  }
+});
     });
  // RESEARCH_ID CACHE
 let researchIDCache = [];
