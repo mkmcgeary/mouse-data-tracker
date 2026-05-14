@@ -8,7 +8,7 @@
     body { font-family: Arial, sans-serif; background: #f0f0f0; max-width: 900px; margin: 0 auto; padding: 20px; }
     .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .header { text-align: center; color: #333; margin-bottom: 30px; }
-    .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
+    .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: nowrap; overflow-x: auto; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
     input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; box-sizing: border-box; }
@@ -20,8 +20,7 @@
     .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     .tab-content { display: none; padding: 20px; }
     .tab-content.active { display: block; }
-    .tab-button { padding: 12px 20px; margin: 5px; border: none; background-color: #f0f0f0; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.3s; }
-    .tab-button:hover { background-color: #ddd; }
+    .tab-button { padding: 10px 15px; margin: 5px 2px; border: none; background-color: #f0f0f0; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.3s;white-space: nowrap;font-size: 13px; }    .tab-button:hover { background-color: #ddd; }
   </style>
 </head>
 <body>
@@ -86,16 +85,16 @@
         </div>
         <div class="field-row">
           <div class="form-group">
+            <label>Weight (g):</label>
+            <input type="number" id="temp_weight" step="0.1" placeholder="24.5" required>
+          </div>
+          <div class="form-group">
             <label>Pre-Temp (°C):</label>
             <input type="number" id="temp_preTemp" step="0.1" placeholder="37.2" required>
           </div>
           <div class="form-group">
             <label>Post-Temp (°C):</label>
             <input type="number" id="temp_postTemp" step="0.1" placeholder="36.8" required>
-          </div>
-          <div class="form-group">
-            <label>Weight (g):</label>
-            <input type="number" id="temp_weight" step="0.1" placeholder="24.5" required>
           </div>
         </div>
         <div class="form-group">
